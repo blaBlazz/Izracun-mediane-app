@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mediana</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./style.css">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script type="module" src="./app.js" defer></script>
+</head>
+<body>
+
+    <div class="screen"> 
+    </div>
+
+    <div class="cta">
+        <div class="cta-f">
+            <form>
+                <input type="text" id="number-input">
+                <button type="submit" id="user-add-btn">DODAJ ŠTEVILO</button>
+                <span id='display-err-n'></span>
+            </form>
+        </div>
+        <div class="cta-b">
+            <button type="submit" id="add-rnd-btn">DODAJ NAKLJUČNO ŠTEVILO</button>
+            <button type="submit" id="rem-btn">ODSTRANI ŠTEVILO</button>
+            <button type="submit" id="rem-all-btn">ODSTRANI VSE</button>
+            <button type="submit" id="median-btn">IZRAČUNAJ MEDIANO</button>
+            <span id='display-err-m'></span>
+        </div>
+    </div>
+
+    <div class="table-med">
+    <table>
+        <thead id="t-head">
+        </thead>
+        <tbody id="t-body"></tbody>
+    </table>
+    </div>
+    
+</body>
+</html>
