@@ -33,9 +33,9 @@ app.post("/api/mediana/calculate", (req, res) => {
     const mid = Math.ceil(numbersList.length / 2);
     const mediana = numbersList.length % 2 == 0 ? (numbersList[mid] + numbersList[mid - 1]) / 2 : numbersList[mid - 1];
     
-    let datetime = MOMENT().format( 'YYYY-MM-DD  HH:mm:ss.000' );
+    let datetime = MOMENT().format('YYYY-MM-DD  HH:mm:ss.000');
 
-    // Inserting median into mysql database 
+    // Inserting median into database 
     const sqlInsert = "INSERT INTO median(CREATED_AT, MEDIANA) VALUES(?, ?)";
     db.query(sqlInsert, [datetime, mediana], (err, result) => {
         if (err) throw err;

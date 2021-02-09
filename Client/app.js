@@ -5,80 +5,19 @@ const userAddButton = document.querySelector("#user-add-btn");
 const remButton = document.querySelector("#rem-btn");
 const remAllButton = document.querySelector("#rem-all-btn");
 const userInput = document.querySelector("#number-input");
-const dispErrN = document.querySelector("#display-err-n");
-const dispErrM = document.querySelector("#display-err-m");
+const dispErrInput = document.querySelector("#display-err-input");
+const dispErrMediana = document.querySelector("#display-med-message");
 const medButton = document.querySelector("#median-btn");
 const tableHead = document.querySelector("#t-head");
 const tableBody = document.querySelector("#t-body");
 
+
 // List 5 random numbers
-var numbersList = new Array(5).fill(0);
-for (let i in numbersList) {
-    numbersList[i] = getRandomInt();
-}
+let numbersList = new Array(5).fill(0).map(v => getRandomInt());
 
 const screen = document.createElement("h1");
-screen.innerText = numbersList.join(', ');
+screen.innerHTML = numbersList.join(', ');
 onScreen.appendChild(screen);
-
-
-// EVENT LISTENERS
-
-// Add random number
-addRndButton.addEventListener("click",  () => {
-    numbersList.push(getRandomInt());
-    screen.innerText = numbersList.join(', ');
-    dispErrN.innerHTML = "";
-    dispErrM.innerHTML = "";
-});
-// Add user number
-userAddButton.addEventListener("click", (e) => {
-    e.preventDefault();
-    let uInput = Number(userInput.value);
-    if (Number.isInteger(uInput) && uInput > 0 ) {
-        numbersList.push(uInput);
-        dispErrN.innerHTML = "";
-    } else {
-        dispErrN.innerHTML = "Vnesite pozitivno celo število";
-    }
-    userInput.value = "";
-    screen.innerText = numbersList.join(', ');
-    dispErrM.innerHTML = "";
-});
-// Remove random number
-remButton.addEventListener("click", () => { 
-    numbersList.splice(getRandomInt(0, numbersList.length-1), 1)
-    screen.innerText = numbersList.join(', ');
-    dispErrN.innerHTML = "";
-    dispErrM.innerHTML = "";
-});
-// Remove all
-remAllButton.addEventListener("click", () => { 
-    numbersList.length = 0;
-    screen.innerText = numbersList;
-    dispErrN.innerHTML = "";
-    dispErrM.innerHTML = "";
-});
-
-// Caputure and send numbers to backend -> POST
-medButton.addEventListener("click", () => {
-    dispErrN.innerHTML = "";
-    if (numbersList.length < 1) {
-        dispErrM.innerHTML = "Vnesite vsaj eno število!";
-        return;
-    };
-    axios.post("http://localhost:5501/api/mediana/calculate", {
-        numbers: numbersList,
-    }).then(response => {
-        let calMed = response.data.split("m");
-        calMed[0] = calMed[0].slice(8, 10) + ". " + calMed[0].slice(5, 7) + ". " + calMed[0].slice(0, 4) + " - " + calMed[0].slice(12, 20);
-        
-        tableBody.innerHTML = `<tr><td>${calMed[0]}</td><td>${calMed[1]}</td></tr>` + tableBody.innerHTML;
-        dispErrM.innerHTML = "";
-    }).catch(err => {
-        if (err) throw err;
-    });
-});
 
 // Get data from backend -> GET
 const getData =
@@ -89,26 +28,89 @@ const getData =
     });
 
 
+// EVENT LISTENERS
 
-// FUNCTIONS
+// Add random number
+addRndButton.addEventListener("click",  () => {
+    numbersList.push(getRandomInt());
+    screen.innerHTML = numbersList.join(', ');
+    removeErrorSigns();
+});
 
-//Table construction from backend data
+// Add number user
+userAddButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    let uInput = Number(userInput.value);
+    if (Number.isInteger(uInput) && uInput > 0 ) {
+        numbersList.push(uInput);
+        removeErrorSigns();
+    } else {
+        dispErrInput.innerHTML = '<i class="fas fa-exclamation-circle"></i> Vnesi pozitivno celo število!';
+        userInput.style.borderColor = "rgb(179, 6, 6)";
+    }
+    screen.innerHTML = numbersList.join(', ');
+    userInput.value = "";
+    dispErrMediana.innerHTML = "";
+});
+
+// Remove random number
+remButton.addEventListener("click", () => { 
+    numbersList.splice(getRandomInt(0, numbersList.length-1), 1)
+    screen.innerHTML = numbersList.join(', ');
+    removeErrorSigns();
+});
+
+// Remove all
+remAllButton.addEventListener("click", () => { 
+    numbersList.length = 0;
+    screen.innerHTML = numbersList;
+    removeErrorSigns();
+});
+
+// Caputure and send numbers to backend -> POST
+medButton.addEventListener("click", () => {
+    removeErrorSigns();
+
+    if (numbersList.length < 1) {
+        dispErrMediana.innerHTML = '<i class="fas fa-exclamation-circle"></i> Dodaj vsaj eno število!';
+        return;
+    };
+
+    axios.post("http://localhost:5501/api/mediana/calculate", {
+        numbers: numbersList,
+    }).then(response => {
+        const [date, mediana] = response.data.split("m");
+        const dateFormat = `${date.slice(8, 10)}. ${date.slice(5, 7)}. ${date.slice(0, 4)} - ${date.slice(12, 20)}`;
+        
+        tableBody.innerHTML = `<tr><td>${dateFormat}</td><td>${mediana}</td></tr> ${tableBody.innerHTML}`;
+    }).catch(err => {
+        if (err) throw err;
+    });
+});
+
+
+// HELPER FUNCTIONS
+
 function loadTableData(medianaData) {
     let dataHtml = "";
 
     if (!medianaData.length) return;
 
-    for(let entry of medianaData) {
-        let date = entry.CREATED_AT;
-        date = date.slice(8, 10) + ". " + date.slice(5, 7) + ". " + date.slice(0, 4) + " - " + date.slice(11, 19);
-        dataHtml = `<tr><td>${date}</td><td>${entry.MEDIANA}</td></tr>` + dataHtml;
+    for(let {CREATED_AT, MEDIANA} of medianaData) {
+        const date = `${CREATED_AT.slice(8, 10)}. ${CREATED_AT.slice(5, 7)}. ${CREATED_AT.slice(0, 4)} - ${CREATED_AT.slice(11, 19)}`;
+        dataHtml = `<tr><td>${date}</td><td>${MEDIANA}</td></tr> ${dataHtml}`;
     }
 
     tableHead.innerHTML = "<tr><th>Ustvarjeno</th> <th>Mediana</th></tr>";
     tableBody.innerHTML = dataHtml;
-}
+};
 
-// Generate random number
 function getRandomInt(min=1, max=1000) {
     return Math.floor(Math.random() * (Math.floor(max) - Math.ceil(min) + 1)) + Math.ceil(min);
-}
+};
+
+function removeErrorSigns() {
+    dispErrInput.innerHTML = "";
+    userInput.style.borderColor = "white";
+    dispErrMediana.innerHTML = "";
+};
